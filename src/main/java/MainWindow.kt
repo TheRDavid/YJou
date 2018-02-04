@@ -20,7 +20,7 @@ import javax.xml.transform.stream.StreamResult
 class MainWindow : Application() {
 
     private val dataHandler = DataHandler(File("mybrainspace"))
-    private val contentsTree = SpaceTree(SpaceFile(dataHandler.rootDir.absolutePath), this)
+    private val contentsTree = JournalsTree(JournalFile(dataHandler.rootDir.absolutePath), this)
     private val addFileButton = Button("+")
     private val deleteFileButton = Button("-")
     private val fileControls = HBox(addFileButton, deleteFileButton)
@@ -30,7 +30,7 @@ class MainWindow : Application() {
     private var selectedJournal = dataHandler.firstJournal()
     private var lastSaveTimestamp: Long = 0
     private val saveInterval: Long = 500
-    private lateinit var currentSpace: SpaceFile
+    private lateinit var currentJournal: JournalFile
 
     var running: Boolean = true
 
@@ -46,7 +46,7 @@ class MainWindow : Application() {
                 transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4")
 
                 transformer.transform(DOMSource(doc),
-                        StreamResult(OutputStreamWriter(PrintStream(currentSpace), "UTF-8")))
+                        StreamResult(OutputStreamWriter(PrintStream(currentJournal), "UTF-8")))
                 lastSaveTimestamp = System.currentTimeMillis()
             }
         }
@@ -56,13 +56,13 @@ class MainWindow : Application() {
             val input = TextInputDialog().showAndWait()
             if (input.isPresent) {
                 val parentItem = contentsTree.selectionModel.selectedItem ?: contentsTree.root
-                val newFile = SpaceFile("" +
+                val newFile = JournalFile("" +
                         (if (parentItem.value.isDirectory) parentItem else parentItem.parent).value.absolutePath +
                         "${File.separatorChar}" +
                         input.get())
                 if (newFile.exists()) Alert(Alert.AlertType.ERROR, "Journal already exists m8", ButtonType.OK)
                 else {
-                    dataHandler.addDefaultSpace(newFile.absolutePath)
+                    dataHandler.addDefaultJournal(newFile.absolutePath)
                     contentsTree.update()
                     contentsTree.selectionModel.select(contentsTree.firstItemByValue(newFile))
                 }
@@ -88,13 +88,13 @@ class MainWindow : Application() {
         return mainPane
     }
 
-    fun loadSpace(space: SpaceFile) {
-        if (!space.isDirectory) {
-            contentArea.engine.loadContent("<div contenteditable=\"true\">${space.readText()}</div>")
-            println("file:///${space.parentFile.absolutePath}${File.separatorChar}${space.nameWithoutExtension}.css")
+    fun loadJournal(journal: JournalFile) {
+        if (!journal.isDirectory) {
+            contentArea.engine.loadContent("<div contenteditable=\"true\">${journal.readText()}</div>")
+            println("file:///${journal.parentFile.absolutePath}${File.separatorChar}${journal.nameWithoutExtension}.css")
 
-            contentArea.engine.userStyleSheetLocation = "file:///${space.parentFile.absolutePath}${File.separatorChar}${space.nameWithoutExtension}.css"
-            currentSpace = space
+            contentArea.engine.userStyleSheetLocation = "file:///${journal.parentFile.absolutePath}${File.separatorChar}${journal.nameWithoutExtension}.css"
+            currentJournal = journal
         }
     }
 

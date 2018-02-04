@@ -7,19 +7,19 @@ import javafx.util.Callback
 import kutils.expandAll
 import java.io.File
 
-class SpaceTree(private val rootDirectory: SpaceFile, val mainWindow: MainWindow) : TreeView<SpaceFile>() {
+class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainWindow) : TreeView<JournalFile>() {
 
     private val forbiddenNames = arrayOf("defaultJournal")
 
     init {
         isEditable = true
-        cellFactory = Callback<TreeView<SpaceFile>, TreeCell<SpaceFile>> {
-            SpaceTreeCell()
+        cellFactory = Callback<TreeView<JournalFile>, TreeCell<JournalFile>> {
+            JournalTreeCell()
         }
 
-        root = TreeItem<SpaceFile>(SpaceFile(rootDirectory.absolutePath))
+        root = TreeItem<JournalFile>(JournalFile(rootDirectory.absolutePath))
         selectionModel.selectedItemProperty().addListener { _, _, newValue ->
-            if (newValue != null) mainWindow.loadSpace(newValue.value)
+            if (newValue != null) mainWindow.loadJournal(newValue.value)
         }
         update()
     }
@@ -30,20 +30,20 @@ class SpaceTree(private val rootDirectory: SpaceFile, val mainWindow: MainWindow
         expandAll()
     }
 
-    private fun update(directory: SpaceFile, parentItem: TreeItem<SpaceFile>) {
+    private fun update(directory: JournalFile, parentItem: TreeItem<JournalFile>) {
         directory.listFiles().filter { !(forbiddenNames.contains(it.name) || it.name.startsWith(".") || it.absolutePath.endsWith(".css")) }.forEach {
-            val spaceFile = SpaceFile(it.absolutePath)
-            val item = TreeItem<SpaceFile>(spaceFile)
+            val journalFile = JournalFile(it.absolutePath)
+            val item = TreeItem<JournalFile>(journalFile)
             parentItem.children.add(item)
             if (it.isDirectory) {
-                update(spaceFile, item)
+                update(journalFile, item)
             }
         }
     }
 
 }
 
-class SpaceTreeCell : TreeCell<SpaceFile>() {
+class JournalTreeCell : TreeCell<JournalFile>() {
 
     private val textField = TextField()
 
@@ -52,13 +52,13 @@ class SpaceTreeCell : TreeCell<SpaceFile>() {
             if (event.code == KeyCode.ESCAPE)
                 cancelEdit()
             else if (event.code == KeyCode.ENTER) {
-                val newFile = SpaceFile("${item.parentFile.absolutePath}${File.separatorChar}${textField.text}")
+                val newFile = JournalFile("${item.parentFile.absolutePath}${File.separatorChar}${textField.text}")
                 item.renameTo(newFile)
                 item = newFile
                 treeItem.value = item
                 cancelEdit()
                 updateItem(item, false)
-                (treeView as SpaceTree).update()
+                (treeView as JournalsTree).update()
             }
         }
     }
@@ -77,7 +77,7 @@ class SpaceTreeCell : TreeCell<SpaceFile>() {
         text = item.toString()
     }
 
-    override fun updateItem(item: SpaceFile?, empty: Boolean) {
+    override fun updateItem(item: JournalFile?, empty: Boolean) {
         super.updateItem(item, empty)
         if (empty) {
             text = null
@@ -97,7 +97,7 @@ class SpaceTreeCell : TreeCell<SpaceFile>() {
 }
 
 
-class SpaceFile(pathname: String?) : File(pathname) {
+class JournalFile(pathname: String?) : File(pathname) {
     override fun toString(): String {
         return absoluteFile.name
     }

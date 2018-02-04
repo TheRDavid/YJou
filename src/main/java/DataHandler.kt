@@ -28,11 +28,11 @@ data class DataHandler(val rootDir: File,
         }
     }
 
-    fun addDefaultSpace(path: String) {
-        val spaceName = path.substring(path.lastIndexOf(File.separatorChar) + 1)
+    fun addDefaultJournal(path: String) {
+        val journalName = path.substring(path.lastIndexOf(File.separatorChar) + 1)
         var defJournal = defaultJournal.readText()
 
-        defJournal = defJournal.replacePlaceHolder(Placeholder.JOURNAL_NAME.toString(), spaceName)
+        defJournal = defJournal.replacePlaceHolder(Placeholder.JOURNAL_NAME.toString(), journalName)
 
         defaultStyle.copyTo(File(path + ".css"))
         File(path).printWriter().use { it.print(defJournal) }
