@@ -49,4 +49,8 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
+# Gosh darn
 target/
+
+# No test-journals
+mybrainspace/

@@ -6,14 +6,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 data class DataHandler(val rootDir: File,
-                       private val archiveDir: File = File(rootDir.absolutePath + File.separatorChar + archiveDirName),
-                       private val defaultJournal: File = File(rootDir.absolutePath + File.separatorChar + "defaultJournal"),
-                       private val defaultStyle: File = File(rootDir.absolutePath + File.separatorChar + "${defaultJournal.name}.css")) {
+                       private val archiveDir: File = File("${rootDir.absolutePath}${File.separatorChar}$archiveDirName"),
+                       private val defaultJournal: File = File("${rootDir.absolutePath}${File.separatorChar}defaultJournal"),
+                       private val defaultStyle: File = File("${rootDir.absolutePath}${File.separatorChar}${defaultJournal.name}.css")) {
     companion object {
         const val archiveDirName = ".archive"
     }
-
-    private val defaultStyleLink = "<link rel=\"stylesheet\" type=\"text/css\" href=\"defaultJournal.css\">"
 
     private enum class Placeholder {
         JOURNAL_NAME
@@ -34,11 +32,11 @@ data class DataHandler(val rootDir: File,
 
         defJournal = defJournal.replacePlaceHolder(Placeholder.JOURNAL_NAME.toString(), journalName)
 
-        defaultStyle.copyTo(File(path + ".css"))
+        defaultStyle.copyTo(File("$path.css"))
         File(path).printWriter().use { it.print(defJournal) }
     }
 
-    private fun String.replacePlaceHolder(placeholderName: String, value: String):String {
+    private fun String.replacePlaceHolder(placeholderName: String, value: String): String {
         println("replacing [[[$placeholderName]]] with $value")
         return replace("[[[$placeholderName]]]", value)
     }
@@ -83,10 +81,10 @@ data class DataHandler(val rootDir: File,
 
     fun archive(file: File) {
         if (!archiveDir.exists()) archiveDir.mkdir()
-        file.copyRecursively(File(archiveDir.absolutePath
-                + File.separatorChar
-                + SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Date(System.currentTimeMillis())) + "_"
-                + file.name))
+        file.copyRecursively(File(archiveDir.absolutePath +
+                "${File.separatorChar}" +
+                SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Date(System.currentTimeMillis())) +
+                "_${file.name}"))
     }
 
 }
