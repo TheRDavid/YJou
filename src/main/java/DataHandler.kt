@@ -1,4 +1,6 @@
+import javafx.scene.control.Alert
 import java.io.File
+import java.net.URL
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
@@ -7,11 +9,13 @@ import java.util.*
 
 data class DataHandler(val rootDir: File,
                        private val archiveDir: File = File("${rootDir.absolutePath}${File.separatorChar}$archiveDirName"),
-                       private val defaultJournal: File = File("${rootDir.absolutePath}${File.separatorChar}.templates${File.separatorChar}defaultTemplate"),
-                       private val defaultStyle: File = File("${rootDir.absolutePath}${File.separatorChar}.templates${File.separatorChar}${defaultJournal.name}.css")) {
+                       val defaultTemplateJournal: File = File("${rootDir.absolutePath}${File.separatorChar}.templates${File.separatorChar}defaultTemplate"),
+                       val defaultTemplateJournalStyle: File = File("${rootDir.absolutePath}${File.separatorChar}.templates${File.separatorChar}${defaultTemplateJournal.name}.css")) {
     companion object {
         const val archiveDirName = ".archive"
         val assetsDir = File("src${File.separatorChar}assets${File.separatorChar}appIcon.png")
+        val remoteDefaultTemplateJournal = URL("https://raw.githubusercontent.com/TheRDavid/YJou/master/mybrainspace/.templates/defaultTemplate")
+        val remoteDefaultTemplateJournalStyle = URL("https://raw.githubusercontent.com/TheRDavid/YJou/master/mybrainspace/.templates/defaultTemplate.css")
     }
 
     private enum class Placeholder {
@@ -28,13 +32,48 @@ data class DataHandler(val rootDir: File,
     }
 
     fun addDefaultJournal(path: String) {
-        val journalName = path.substring(path.lastIndexOf(File.separatorChar) + 1)
-        var defJournal = defaultJournal.readText()
 
+        checkTemplates()
+
+        val journalName = path.substring(path.lastIndexOf(File.separatorChar) + 1)
+        var defJournal = defaultTemplateJournal.readText()
         defJournal = defJournal.replacePlaceHolder(Placeholder.JOURNAL_NAME.toString(), journalName)
 
-        defaultStyle.copyTo(File("$path.css"))
+        defaultTemplateJournalStyle.copyTo(File("$path.css"))
         File(path).printWriter().use { it.print(defJournal) }
+    }
+
+    fun checkTemplates() {
+        try {
+            if (!defaultTemplateJournal.exists()) {
+                defaultTemplateJournal.parentFile.mkdirs()
+                defaultTemplateJournal.writeText(DataHandler.remoteDefaultTemplateJournal.readText())
+            }
+            if (!defaultTemplateJournalStyle.exists()) {
+                defaultTemplateJournalStyle.parentFile.mkdirs()
+                defaultTemplateJournalStyle.writeText(DataHandler.remoteDefaultTemplateJournalStyle.readText())
+            }
+        } catch (e: Exception) {
+            Alert(Alert.AlertType.ERROR, "Great, your template files are missing / incomplete and I can't download them because there's no bloody connection! So all your newly created files will just be blank...\nNext time you're connected, delete your new templates so the program will attempt to get them online again.").show()
+            createOfflineTemplates()
+        }
+    }
+
+    private fun createOfflineTemplates() {
+        defaultTemplateJournal.parentFile.mkdirs()
+        if (!defaultTemplateJournal.exists())
+            defaultTemplateJournal.printWriter().use {
+                it.print(
+                        "<HTML>\n" +
+                                "    <HEAD>\n" +
+                                "        <link rel=\"stylesheet\" type=\"text/css\" href=\"[[[JOURNAL_NAME]]].css\">\n" +
+                                "    </HEAD>\n" +
+                                "    <BODY>\n" +
+                                "        <DIV class=\"defaultText\" contenteditable=\"true\">herp merp derp</DIV></BODY>" +
+                                "</HTML>")
+            }
+        if (!defaultTemplateJournalStyle.exists())
+            defaultTemplateJournalStyle.createNewFile()
     }
 
     private fun String.replacePlaceHolder(placeholderName: String, value: String): String {

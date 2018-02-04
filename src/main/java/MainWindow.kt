@@ -12,7 +12,6 @@ import kutils.firstItemByValue
 import java.io.File
 import java.io.OutputStreamWriter
 import java.io.PrintStream
-import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
@@ -105,7 +104,12 @@ class MainWindow : Application() {
     fun loadJournal(journal: JournalFile) {
         if (!journal.isDirectory) {
             contentArea.engine.loadContent(journal.readText())
-            contentArea.engine.userStyleSheetLocation = "file:///${journal.parentFile.absolutePath}${File.separatorChar}${journal.nameWithoutExtension}.css"
+            val styleFile = File("${journal.parentFile.absolutePath}${File.separatorChar}${journal.name}.css")
+            if (!styleFile.exists()) {
+                dataHandler.checkTemplates()
+                styleFile.writeText(dataHandler.defaultTemplateJournalStyle.readText())
+            }
+            contentArea.engine.userStyleSheetLocation = "file:///$styleFile"
             currentJournal = journal
         }
     }

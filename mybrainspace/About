@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?><HTML xmlns="http://www.w3.org/1999/xhtml"><HEAD>
-    </HEAD><BODY>
-		<LINK rel="stylesheet" type="text/css" href="YJou Dev Notes.css"/>
+        <LINK rel="stylesheet" type="text/css" href="YJou Dev Notes.css"/>
+    </HEAD>
+    <BODY>
         <DIV class="defaultText" contenteditable="true">
-          <H1>About YJou</H1>
+          <H1>About YJou <IMG src="https://raw.githubusercontent.com/TheRDavid/YJou/master/src/assets/appIcon.png"/></H1>
           <H2>Major Issues</H2><DIV><UL style="box-sizing: inherit; font-variant-ligatures: normal; letter-spacing: normal; orphans: 2; text-align: start; widows: 2; word-spacing: 0px;">
-                <LI style="font-family: Verdana, sans-serif; font-size: 15px; background-color: rgb(255, 255, 255); box-sizing: inherit;">
-					On startup check that default journal and css exist, if not pull from GitHub
-				</LI>
-                 <LI style="font-family: Verdana, sans-serif; font-size: 15px; background-color: rgb(255, 255, 255);">
-					Check if css of a journal exists before loading, create if it isn't!
-				</LI>
                 <LI style="font-family: Verdana, sans-serif; font-size: 15px; background-color: rgb(255, 255, 255);">
                     When following a Hyperlink, make sure the destintation is editable!
                     <BR/>
@@ -19,15 +14,15 @@
                         <LI>Make editable</LI>
                         <LI>Continue read only</LI>
                     </UL>
-                
-            </UL><DIV style="orphans: 2; text-align: left; widows: 2;"><H2 style="text-align: justify;">Minor Issues</H2><UL style="box-sizing: inherit; font-variant-ligatures: normal; letter-spacing: normal; word-spacing: 0px;"><LI style="box-sizing: inherit;"><SPAN style="font-family: Verdana, sans-serif; font-size: 15px; background-color: rgb(255, 255, 255);">File-Tree sometimes switches selection to upper directory when creating a new node</SPAN></LI></UL></DIV>
+
+            </UL><DIV style="orphans: 2; text-align: left; widows: 2;"><H2 style="text-align: justify;">Minor Issues</H2><UL style="box-sizing: inherit; font-variant-ligatures: normal; letter-spacing: normal; word-spacing: 0px;"><LI style="box-sizing: inherit;"><SPAN style="font-family: Verdana, sans-serif; font-size: 15px; background-color: rgb(255, 255, 255);">File-Tree sometimes switches selection to upper directory when creating a new node</SPAN></LI><LI style="box-sizing: inherit;"><SPAN style="font-family: Verdana, sans-serif; font-size: 15px; background-color: rgb(255, 255, 255);">Application sometimes blocks files even when they are no LONGER selected (System.gc() might magically help)</SPAN></LI></UL></DIV>
         </DIV>
         <H2>Future Features</H2>
             <DIV>
                 <UL style="box-sizing: inherit; font-family: Verdana, sans-serif; font-size: 15px; font-variant-ligatures: normal; letter-spacing: normal; orphans: 2; text-align: start; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255);">
                     <LI style="box-sizing: inherit;">
-						Delete Folders (show user a list of contained journals)
-					</LI>
+                        Delete Folders (show user a list of contained journals)
+                    </LI>
                     <LI>
                         Show context menu when user right-clicks a tree-node
                         <BR/>
@@ -44,8 +39,8 @@
             <H2>
                 <UL style="font-weight: normal; box-sizing: inherit; font-family: Verdana, sans-serif; font-size: 15px; font-variant-ligatures: normal; letter-spacing: normal; orphans: 2; text-align: start; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255);">
                     <LI>
-						KeyListener for File-Tree
-						<BR/>
+                        KeyListener for File-Tree
+                        <BR/>
                         <UL>
                             <LI>Copy</LI>
                             <LI>Paste</LI>
@@ -56,17 +51,17 @@
                     <LI>Drag &amp; Drop Files and Folders</LI>
                     <LI>Save current journal program exit or when switching journal</LI><LI>Change image source &amp; size</LI>
                 </UL>
-            </H2><H2><UL style="font-weight: normal; box-sizing: inherit; font-family: Verdana, sans-serif; font-size: 15px; font-variant-ligatures: normal; letter-spacing: normal; orphans: 2; text-align: start; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255);"><LI>Element suggestions via Ctrl+Space<BR/><UL><LI>Image</LI><LI>List</LI><LI>Table</LI><LI>Headings</LI><LI>Basic Text Formatting</LI></UL></LI></UL></H2>
+            </H2><H2><UL style="font-weight: normal; box-sizing: inherit; font-family: Verdana, sans-serif; font-size: 15px; font-variant-ligatures: normal; letter-spacing: normal; orphans: 2; text-align: start; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255);"><LI>Element suggestions via Ctrl+Space<BR/><UL><LI>Image</LI><LI>List</LI><LI>Table</LI><LI>Headings</LI><LI>Basic Text Formatting</LI><LI>HyperLink</LI></UL></LI></UL></H2>
             <DIV>
                 <H2>Version History</H2>
-                <DIV>
+                <DIV><B style="color: rgb(34, 34, 34); font-family: arial, sans-serif; font-variant-ligatures: normal; letter-spacing: normal; orphans: 2; text-align: left; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255);"><DIV style="color: rgb(0, 0, 0); font-family: arial, helvetica, sans-serif; font-weight: normal; letter-spacing: 1.3333333730697632px; text-align: justify; word-spacing: 5.333333492279053px;"><B style="color: rgb(34, 34, 34); font-family: arial, sans-serif; font-variant-ligatures: normal; letter-spacing: normal; text-align: left; word-spacing: 0px;">05.02.2018</B></DIV><DIV style="color: rgb(0, 0, 0); font-family: arial, helvetica, sans-serif; font-weight: normal; letter-spacing: 1.3333333730697632px; text-align: justify; word-spacing: 5.333333492279053px;"><BR/></DIV><DIV style="color: rgb(0, 0, 0); font-family: arial, helvetica, sans-serif; font-weight: normal; letter-spacing: 1.3333333730697632px; text-align: justify; word-spacing: 5.333333492279053px;"><SPAN style="color: rgb(51, 51, 51); font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 12.600000381469727px; letter-spacing: normal; text-align: left; word-spacing: 0px; background-color: rgb(249, 242, 244);">Commit-ID: </SPAN></DIV><DIV style="color: rgb(0, 0, 0); font-family: arial, helvetica, sans-serif; font-weight: normal; letter-spacing: 1.3333333730697632px; text-align: justify; word-spacing: 5.333333492279053px;"><FONT color="#333333" face="Menlo, Monaco, Consolas, Courier New, monospace"><SPAN style="font-size: 12.600000381469727px; letter-spacing: normal; word-spacing: 0px;"><BR/></SPAN></FONT></DIV></B></DIV><DIV>
                     <B style="color: rgb(34, 34, 34); font-family: arial, sans-serif; font-variant-ligatures: normal; letter-spacing: normal; orphans: 2; text-align: left; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255);">
-						04.02.2018
-					</B>
+                        04.02.2018
+                    </B>
                 </DIV>
                 <DIV>
-					First version provides basic functionality, a journal template and an About-Journal, weeeeeee!
-				</DIV><DIV><SPAN style="color: rgb(51, 51, 51); font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 12.600000381469727px; letter-spacing: normal; orphans: 2; text-align: left; widows: 2; word-spacing: 0px; background-color: rgb(249, 242, 244);">Commit-ID: </SPAN><FONT color="#333333" face="Menlo, Monaco, Consolas, Courier New, monospace"><SPAN style="font-size: 12.600000381469727px; letter-spacing: normal; word-spacing: 0px;">a31fe5e9943108e8c1953fe4d3ef58fb41f372a6</SPAN></FONT></DIV>
+                    First version provides basic functionality, a journal template and an About-Journal, weeeeeee!
+                </DIV><DIV><SPAN style="color: rgb(51, 51, 51); font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 12.600000381469727px; letter-spacing: normal; orphans: 2; text-align: left; widows: 2; word-spacing: 0px; background-color: rgb(249, 242, 244);">Commit-ID: </SPAN><FONT color="#333333" face="Menlo, Monaco, Consolas, Courier New, monospace"><SPAN style="font-size: 12.600000381469727px; letter-spacing: normal; word-spacing: 0px;">a31fe5e9943108e8c1953fe4d3ef58fb41f372a6</SPAN></FONT></DIV>
                 <DIV>
                     <I style="box-sizing: inherit; font-family: Verdana, sans-serif; font-size: 15px; font-variant-ligatures: normal; letter-spacing: normal; orphans: 2; text-align: start; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255);">
                         <H2 style="font-family: arial, helvetica, sans-serif; font-style: normal; letter-spacing: 1.3333333730697632px; text-align: justify; word-spacing: 5.333333492279053px;">Notes</H2>
@@ -75,5 +70,4 @@
             </DIV>
         </DIV>
     
-
 </BODY></HTML>
