@@ -54,3 +54,6 @@ target/
 
 # No test-journals
 mybrainspace/
+
+# ignore-files
+_*

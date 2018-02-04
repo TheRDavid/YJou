@@ -3,6 +3,7 @@ import javafx.geometry.Pos
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.*
+import javafx.scene.image.Image
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
 import javafx.scene.web.WebView
@@ -75,12 +76,17 @@ class MainWindow : Application() {
             selectedItem?.let {
                 Alert(Alert.AlertType.CONFIRMATION, "Deleting ${selectedItem.value.name}...\nReally?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
                     if (it.get() == ButtonType.YES) {
+                        currentJournal = JournalFile("")
                         dataHandler.archive(selectedItem.value)
                         if (selectedItem.value == currentJournal) {
                             contentArea.engine.load(startPageURL)
+                            contentArea.engine.history.entries.clear()
                         }
                         selectedItem.value.delete()
+                        System.gc()                     // what ?!
+                        File("${selectedItem.value.absolutePath}.css").delete()
                         contentsTree.update()
+                        contentArea.engine.load(startPageURL)
                     }
                 }
             }
@@ -105,6 +111,7 @@ class MainWindow : Application() {
     override fun start(primaryStage: Stage) {
         primaryStage.scene = Scene(build(), 1280.0, 720.0)
         primaryStage.title = dataHandler.rootDir.name
+        primaryStage.icons.add(Image("file:${DataHandler.assetsDir}"))
         primaryStage.show()
         dataHandler.registerWatcher(this@MainWindow)
     }

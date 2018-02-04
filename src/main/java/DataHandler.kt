@@ -11,6 +11,7 @@ data class DataHandler(val rootDir: File,
                        private val defaultStyle: File = File("${rootDir.absolutePath}${File.separatorChar}${defaultJournal.name}.css")) {
     companion object {
         const val archiveDirName = ".archive"
+        val assetsDir = File("src${File.separatorChar}assets${File.separatorChar}appIcon.png")
     }
 
     private enum class Placeholder {
