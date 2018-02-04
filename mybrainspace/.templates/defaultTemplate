@@ -4,7 +4,7 @@
         <link rel="stylesheet" type="text/css" href="[[[JOURNAL_NAME]]].css">
     </HEAD>
     <BODY>
-        <DIV class="defaultText">
+        <DIV class="defaultText" contenteditable="true">
             <H1>[[[JOURNAL_NAME]]] - My New Journal</H1>
             Some descriptive text (wow)
             <BR/>

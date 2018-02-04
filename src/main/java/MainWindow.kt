@@ -32,20 +32,24 @@ class MainWindow : Application() {
     private var lastSaveTimestamp: Long = 0
     private val saveInterval: Long = 500
     private lateinit var currentJournal: JournalFile
-    private val startPageURL = "file:///${File("./src/assets/startPage/startPage.html").absolutePath}"
+    private val startPageURL = "file:///${File("." +
+            "${File.separatorChar}src" +
+            "${File.separatorChar}assets" +
+            "${File.separatorChar}startPage" +
+            "${File.separatorChar}index.html").absolutePath}"
 
     var running: Boolean = true
 
     private fun build(): Parent {
+        contentsTree.selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
+            println((
+                    if (oldValue == null) "first selection -> ${newValue.value.name}"
+                    else "Selection went from ${oldValue.value.name} to ${newValue.value.name}"))
+        }
         contentArea.setOnKeyReleased {
             if (System.currentTimeMillis() - lastSaveTimestamp > saveInterval) {
-                val doc = contentArea.engine.document
+                val doc = contentArea.engine.document.getElementsByTagName("HTML").item(0)
                 val transformer = TransformerFactory.newInstance().newTransformer()
-                transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no")
-                transformer.setOutputProperty(OutputKeys.METHOD, "xml")
-                transformer.setOutputProperty(OutputKeys.INDENT, "yes")
-                transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
-                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4")
 
                 transformer.transform(DOMSource(doc),
                         StreamResult(OutputStreamWriter(PrintStream(currentJournal), "UTF-8")))
@@ -80,13 +84,11 @@ class MainWindow : Application() {
                         dataHandler.archive(selectedItem.value)
                         if (selectedItem.value == currentJournal) {
                             contentArea.engine.load(startPageURL)
-                            contentArea.engine.history.entries.clear()
                         }
                         selectedItem.value.delete()
                         System.gc()                     // what ?!
                         File("${selectedItem.value.absolutePath}.css").delete()
                         contentsTree.update()
-                        contentArea.engine.load(startPageURL)
                     }
                 }
             }
@@ -102,7 +104,7 @@ class MainWindow : Application() {
 
     fun loadJournal(journal: JournalFile) {
         if (!journal.isDirectory) {
-            contentArea.engine.loadContent("<div contenteditable=\"true\">${journal.readText()}</div>")
+            contentArea.engine.loadContent(journal.readText())
             contentArea.engine.userStyleSheetLocation = "file:///${journal.parentFile.absolutePath}${File.separatorChar}${journal.nameWithoutExtension}.css"
             currentJournal = journal
         }
@@ -123,7 +125,7 @@ class MainWindow : Application() {
 
     fun update(updateTree: Boolean, closeArea: Boolean, updateEditArea: Boolean) {
         if (updateTree) {
-            contentsTree.update()
+            //contentsTree.update()
         }
     }
 

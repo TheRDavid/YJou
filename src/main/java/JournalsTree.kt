@@ -9,8 +9,6 @@ import java.io.File
 
 class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainWindow) : TreeView<JournalFile>() {
 
-    private val forbiddenNames = arrayOf("defaultJournal")
-
     init {
         isEditable = true
         cellFactory = Callback<TreeView<JournalFile>, TreeCell<JournalFile>> {
@@ -31,7 +29,7 @@ class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainW
     }
 
     private fun update(directory: JournalFile, parentItem: TreeItem<JournalFile>) {
-        directory.listFiles().filter { !(forbiddenNames.contains(it.name) || it.name.startsWith(".") || it.absolutePath.endsWith(".css")) }.forEach {
+        directory.listFiles().filter { !it.name.startsWith(".") && !it.absolutePath.endsWith(".css") }.forEach {
             val journalFile = JournalFile(it.absolutePath)
             val item = TreeItem<JournalFile>(journalFile)
             parentItem.children.add(item)
@@ -52,8 +50,10 @@ class JournalTreeCell : TreeCell<JournalFile>() {
             if (event.code == KeyCode.ESCAPE)
                 cancelEdit()
             else if (event.code == KeyCode.ENTER) {
+                val oldCSSFile = JournalFile("${item.absolutePath}.css")
                 val newFile = JournalFile("${item.parentFile.absolutePath}${File.separatorChar}${textField.text}")
                 item.renameTo(newFile)
+                oldCSSFile.renameTo(File("${newFile.absolutePath}.css"))
                 item = newFile
                 treeItem.value = item
                 cancelEdit()

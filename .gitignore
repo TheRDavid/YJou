@@ -53,7 +53,14 @@ fabric.properties
 target/
 
 # No test-journals
-mybrainspace/
+mybrainspace/*
+
+# But About and Default Journals
+!mybrainspace/About
+!mybrainspace/About.css
+!mybrainspace/.templates
+!mybrainspace/.templates/defaultTemplate
+!mybrainspace/.templates/defaultTemplate.css
 
 # ignore-files
 _*
