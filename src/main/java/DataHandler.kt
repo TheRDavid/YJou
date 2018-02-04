@@ -37,7 +37,6 @@ data class DataHandler(val rootDir: File,
     }
 
     private fun String.replacePlaceHolder(placeholderName: String, value: String): String {
-        println("replacing [[[$placeholderName]]] with $value")
         return replace("[[[$placeholderName]]]", value)
     }
 

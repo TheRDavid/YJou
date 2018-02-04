@@ -31,6 +31,7 @@ class MainWindow : Application() {
     private var lastSaveTimestamp: Long = 0
     private val saveInterval: Long = 500
     private lateinit var currentJournal: JournalFile
+    private val startPageURL = "file:///${File("./src/assets/startPage/startPage.html").absolutePath}"
 
     var running: Boolean = true
 
@@ -72,9 +73,12 @@ class MainWindow : Application() {
         deleteFileButton.setOnMouseClicked {
             val selectedItem = contentsTree.selectionModel.selectedItem
             selectedItem?.let {
-                Alert(Alert.AlertType.CONFIRMATION, "Really?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
+                Alert(Alert.AlertType.CONFIRMATION, "Deleting ${selectedItem.value.name}...\nReally?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
                     if (it.get() == ButtonType.YES) {
                         dataHandler.archive(selectedItem.value)
+                        if (selectedItem.value == currentJournal) {
+                            contentArea.engine.load(startPageURL)
+                        }
                         selectedItem.value.delete()
                         contentsTree.update()
                     }
@@ -83,6 +87,8 @@ class MainWindow : Application() {
         }
         leftPanel.bottom = fileControls
         leftPanel.center = contentsTree
+        contentArea.engine.load(startPageURL)
+
         mainPane.setDividerPosition(0, 0.3)
         update(true, false, true)
         return mainPane
@@ -91,8 +97,6 @@ class MainWindow : Application() {
     fun loadJournal(journal: JournalFile) {
         if (!journal.isDirectory) {
             contentArea.engine.loadContent("<div contenteditable=\"true\">${journal.readText()}</div>")
-            println("file:///${journal.parentFile.absolutePath}${File.separatorChar}${journal.nameWithoutExtension}.css")
-
             contentArea.engine.userStyleSheetLocation = "file:///${journal.parentFile.absolutePath}${File.separatorChar}${journal.nameWithoutExtension}.css"
             currentJournal = journal
         }
