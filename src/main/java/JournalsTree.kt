@@ -4,7 +4,7 @@ import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
 import javafx.util.Callback
-import kutils.expandAll
+import kutils.ui.fx.expandAll
 import java.io.File
 
 class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainWindow) : TreeView<JournalFile>() {

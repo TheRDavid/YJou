@@ -8,9 +8,9 @@ import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
 import javafx.scene.web.WebView
 import javafx.stage.Stage
-import kutils.firstItemByValue
+import kutils.io.deleteRecursively
+import kutils.ui.fx.firstItemByValue
 import java.io.File
-
 
 class MainWindow : Application() {
 
@@ -67,15 +67,15 @@ class MainWindow : Application() {
         deleteFileButton.setOnMouseClicked {
             val selectedItem = contentsTree.selectionModel.selectedItem
             selectedItem?.let {
-                Alert(Alert.AlertType.CONFIRMATION, "Deleting ${selectedItem.value.name}...\nReally?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
+                Alert(Alert.AlertType.CONFIRMATION, "You sure abount deleting ${selectedItem.value.name}${if (selectedItem.value.isDirectory) "and all contained files" else ""}?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
                     if (it.get() == ButtonType.YES) {
                         if (selectedItem.value == dataHandler.currentJournal) {
                             contentArea.engine.load(startPageURL)
                         }
                         dataHandler.currentJournal = JournalFile("")
                         dataHandler.archive(selectedItem.value)
-                        selectedItem.value.delete()
-                        System.gc()                     // what ?!
+                        selectedItem.value.deleteRecursively()
+                        System.gc()                     // unblock file... yup
                         File("${selectedItem.value.absolutePath}.css").delete()
                         contentsTree.update()
                     }
@@ -93,7 +93,10 @@ class MainWindow : Application() {
 
     fun loadJournal(journal: JournalFile) {
         dataHandler.currentJournal?.let {
-            if (it.exists()) dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
+            if (it.exists()) {
+                dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
+                System.gc()                     // unblock file... yup
+            }
         }
         if (!journal.isDirectory) {
             contentArea.engine.loadContent(journal.readText())
@@ -108,6 +111,9 @@ class MainWindow : Application() {
     }
 
     override fun start(primaryStage: Stage) {
+        primaryStage.setOnCloseRequest {
+            dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
+        }
         primaryStage.scene = Scene(build(), 1280.0, 720.0)
         primaryStage.title = dataHandler.rootDir.name
         primaryStage.icons.add(Image("file:${DataHandler.assetsDir}"))
