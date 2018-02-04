@@ -10,11 +10,6 @@ import javafx.scene.web.WebView
 import javafx.stage.Stage
 import kutils.firstItemByValue
 import java.io.File
-import java.io.OutputStreamWriter
-import java.io.PrintStream
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
 
 
 class MainWindow : Application() {
@@ -30,7 +25,6 @@ class MainWindow : Application() {
     private var selectedJournal = dataHandler.firstJournal()
     private var lastSaveTimestamp: Long = 0
     private val saveInterval: Long = 500
-    private lateinit var currentJournal: JournalFile
     private val startPageURL = "file:///${File("." +
             "${File.separatorChar}src" +
             "${File.separatorChar}assets" +
@@ -47,11 +41,7 @@ class MainWindow : Application() {
         }
         contentArea.setOnKeyReleased {
             if (System.currentTimeMillis() - lastSaveTimestamp > saveInterval) {
-                val doc = contentArea.engine.document.getElementsByTagName("HTML").item(0)
-                val transformer = TransformerFactory.newInstance().newTransformer()
-
-                transformer.transform(DOMSource(doc),
-                        StreamResult(OutputStreamWriter(PrintStream(currentJournal), "UTF-8")))
+                dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
                 lastSaveTimestamp = System.currentTimeMillis()
             }
         }
@@ -79,11 +69,11 @@ class MainWindow : Application() {
             selectedItem?.let {
                 Alert(Alert.AlertType.CONFIRMATION, "Deleting ${selectedItem.value.name}...\nReally?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
                     if (it.get() == ButtonType.YES) {
-                        currentJournal = JournalFile("")
-                        dataHandler.archive(selectedItem.value)
-                        if (selectedItem.value == currentJournal) {
+                        if (selectedItem.value == dataHandler.currentJournal) {
                             contentArea.engine.load(startPageURL)
                         }
+                        dataHandler.currentJournal = JournalFile("")
+                        dataHandler.archive(selectedItem.value)
                         selectedItem.value.delete()
                         System.gc()                     // what ?!
                         File("${selectedItem.value.absolutePath}.css").delete()
@@ -102,6 +92,9 @@ class MainWindow : Application() {
     }
 
     fun loadJournal(journal: JournalFile) {
+        dataHandler.currentJournal?.let {
+            if (it.exists()) dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
+        }
         if (!journal.isDirectory) {
             contentArea.engine.loadContent(journal.readText())
             val styleFile = File("${journal.parentFile.absolutePath}${File.separatorChar}${journal.name}.css")
@@ -110,7 +103,7 @@ class MainWindow : Application() {
                 styleFile.writeText(dataHandler.defaultTemplateJournalStyle.readText())
             }
             contentArea.engine.userStyleSheetLocation = "file:///$styleFile"
-            currentJournal = journal
+            dataHandler.currentJournal = journal
         }
     }
 

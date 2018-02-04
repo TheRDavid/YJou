@@ -1,11 +1,17 @@
 import javafx.scene.control.Alert
+import org.w3c.dom.Node
 import java.io.File
+import java.io.OutputStreamWriter
+import java.io.PrintStream
 import java.net.URL
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 
 data class DataHandler(val rootDir: File,
                        private val archiveDir: File = File("${rootDir.absolutePath}${File.separatorChar}$archiveDirName"),
@@ -17,6 +23,8 @@ data class DataHandler(val rootDir: File,
         val remoteDefaultTemplateJournal = URL("https://raw.githubusercontent.com/TheRDavid/YJou/master/mybrainspace/.templates/defaultTemplate")
         val remoteDefaultTemplateJournalStyle = URL("https://raw.githubusercontent.com/TheRDavid/YJou/master/mybrainspace/.templates/defaultTemplate.css")
     }
+
+    var currentJournal: JournalFile? = null
 
     private enum class Placeholder {
         JOURNAL_NAME
@@ -31,8 +39,16 @@ data class DataHandler(val rootDir: File,
         }
     }
 
-    fun addDefaultJournal(path: String) {
+    fun saveCurrentJournal(node: Node) {
+        currentJournal?.let {
+            val transformer = TransformerFactory.newInstance().newTransformer()
 
+            transformer.transform(DOMSource(node),
+                    StreamResult(OutputStreamWriter(PrintStream(currentJournal), "UTF-8")))
+        }
+    }
+
+    fun addDefaultJournal(path: String) {
         checkTemplates()
 
         val journalName = path.substring(path.lastIndexOf(File.separatorChar) + 1)
