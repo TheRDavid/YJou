@@ -64,3 +64,5 @@ mybrainspace/*
 
 # ignore-files
 _*
+.idea/markdown-navigator.xml
+.idea/markdown-navigator/*

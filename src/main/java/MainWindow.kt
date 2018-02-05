@@ -31,6 +31,7 @@ class MainWindow : Application() {
             "${File.separatorChar}assets" +
             "${File.separatorChar}startPage" +
             "${File.separatorChar}index.html").absolutePath}"
+    private var displayingJournal = false
 
     var running: Boolean = true
 
@@ -71,10 +72,11 @@ class MainWindow : Application() {
         deleteFileButton.setOnMouseClicked {
             val selectedItem = contentsTree.selectionModel.selectedItem
             selectedItem?.let {
-                Alert(Alert.AlertType.CONFIRMATION, "You sure abount deleting ${selectedItem.value.name}${if (selectedItem.value.isDirectory) "and all contained files" else ""}?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
+                Alert(Alert.AlertType.CONFIRMATION, "You sure about deleting ${selectedItem.value.name}${if (selectedItem.value.isDirectory) "and all contained files" else ""}?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
                     if (it.get() == ButtonType.YES) {
                         if (selectedItem.value == dataHandler.currentJournal) {
                             contentArea.engine.load(startPageURL)
+                            displayingJournal = false
                         }
                         dataHandler.currentJournal = JournalFile("")
                         dataHandler.archive(selectedItem.value)
@@ -89,6 +91,7 @@ class MainWindow : Application() {
         leftPanel.bottom = fileControls
         leftPanel.center = contentsTree
         contentArea.engine.load(startPageURL)
+        displayingJournal = false
 
         mainPane.setDividerPosition(0, 0.3)
         update(true, false, false, false)
@@ -98,26 +101,34 @@ class MainWindow : Application() {
     fun loadJournal(journal: JournalFile) {
         dataHandler.currentJournal?.let {
             if (it.exists()) {
-                val source = contentArea.engine.document.getElementsByTagName("HTML").item(0)
-                dataHandler.saveCurrentJournal(source)
-                System.gc()                     // unblock file... yup
+                val doc = contentArea.engine.document
+                if (doc != null) {
+                    val htmlElements = doc.getElementsByTagName("HTML")
+                    val source = htmlElements.item(0)
+                    dataHandler.saveCurrentJournal(source)
+                    System.gc()                     // unblock file... yup
+                }
             }
         }
         if (!journal.isDirectory) {
-            contentArea.engine.loadContent(journal.readText())
+            val journalSource = journal.readText()
+            contentArea.engine.loadContent(journalSource)
+            displayingJournal = true
             val styleFile = File("${journal.parentFile.absolutePath}${File.separatorChar}${journal.name}.css")
-            if (!styleFile.exists()) {
-                dataHandler.checkTemplates()
-                styleFile.writeText(dataHandler.defaultTemplateJournalStyle.readText())
+            if (!journalSource.contains("<style type=\"text/css\">", true)) {
+                if (!styleFile.exists()) {
+                    dataHandler.checkTemplates()
+                    styleFile.writeText(dataHandler.defaultTemplateJournalStyle.readText())
+                }
+                contentArea.engine.userStyleSheetLocation = "file:///$styleFile"
             }
-            contentArea.engine.userStyleSheetLocation = "file:///$styleFile"
             dataHandler.currentJournal = journal
         }
     }
 
     override fun start(primaryStage: Stage) {
         primaryStage.setOnCloseRequest {
-            dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
+            if (displayingJournal) dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
         }
         primaryStage.scene = Scene(build(), 1280.0, 720.0)
         primaryStage.title = dataHandler.rootDir.name
@@ -140,6 +151,7 @@ class MainWindow : Application() {
         }
         if (goToStartingPage) {
             Platform.runLater({ contentArea.engine.load(startPageURL) })
+            displayingJournal = false
         }
     }
 
