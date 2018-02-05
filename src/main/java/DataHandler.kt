@@ -1,4 +1,6 @@
+import javafx.application.Platform
 import javafx.scene.control.Alert
+import javafx.scene.control.ChoiceDialog
 import org.w3c.dom.Node
 import java.io.File
 import java.io.OutputStreamWriter
@@ -70,7 +72,8 @@ data class DataHandler(val rootDir: File,
                 defaultTemplateJournalStyle.writeText(DataHandler.remoteDefaultTemplateJournalStyle.readText())
             }
         } catch (e: Exception) {
-            Alert(Alert.AlertType.ERROR, "Great, your template files are missing / incomplete and I can't download them because there's no bloody connection! So all your newly created files will just be blank...\nNext time you're connected, delete your new templates so the program will attempt to get them online again.").show()
+            val alert = Alert(Alert.AlertType.ERROR, "Great, your template files are missing / incomplete and I can't download them because there's no bloody connection! So all your newly created files will just be blank...\nNext time you're connected, delete your new templates so the program will attempt to get them online again.")
+            alert.title = "Could not find templates"
             createOfflineTemplates()
         }
     }
@@ -100,39 +103,64 @@ data class DataHandler(val rootDir: File,
         return rootDir.listFiles()[0]
     }
 
-    fun registerWatcher(watcherUI: MainWindow) {
-        Thread(Runnable {
+    fun registerWatcher(watcherUI: MainWindow) = Thread(Runnable {
 
-            val path = FileSystems.getDefault().getPath(rootDir.absolutePath)
-            val watchService = FileSystems.getDefault().newWatchService()
-            path.register(watchService, arrayOf(StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY))
+        val path = FileSystems.getDefault().getPath(rootDir.absolutePath)
+        val watchService = FileSystems.getDefault().newWatchService()
+        path.register(watchService, arrayOf(StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY))
 
-            while (watcherUI.running) {
-                Thread.sleep(1000)
-                val key = watchService.take()
+        while (watcherUI.running) {
+            Thread.sleep(1000)
+            val key = watchService.take()
 
-                var updateTree = false
-                var closeArea = false
-                var updateArea = false
+            var updateTree = false
+            var goToStartingPage = false
+            var updateArea = false
+            var saveCurrentFile = false
 
-                key.pollEvents().forEach { e ->
-                    when (e.kind()) {
-                        StandardWatchEventKinds.ENTRY_CREATE -> {
-                            updateTree = true
+            key.pollEvents().forEach { e ->
+                when (e.kind()) {
+                    StandardWatchEventKinds.ENTRY_CREATE -> {
+                        updateTree = true
+                        Platform.runLater({
+                            watcherUI.update(updateTree, updateArea, goToStartingPage, saveCurrentFile)
+                        })
+                    }
+                    StandardWatchEventKinds.ENTRY_DELETE -> {
+                        updateTree = true
+                        if (currentJournal?.absolutePath == rootDir.resolve((e.context() as Path).toFile()).absolutePath) {
+                            Platform.runLater({
+                                val choices = listOf("Recreate", "Close", "Close and delete stylesheet")
+                                val choiceDialog = ChoiceDialog<String>(choices[0], choices)
+                                choiceDialog.title = "Whops"
+                                choiceDialog.headerText = "Some dofus deleted this file(${currentJournal?.name})."
+                                if (choiceDialog.showAndWait().isPresent) {
+                                    when (choiceDialog.selectedItem) {
+                                        choices[0] -> {
+                                            saveCurrentFile = true
+                                            currentJournal?.createNewFile()
+                                        }
+                                        choices[1] -> goToStartingPage = true
+                                        choices[2] -> {
+                                            goToStartingPage = true; File(currentJournal?.absolutePath + ".css").delete()
+                                        }
+                                    }
+                                }
+                                watcherUI.update(updateTree, updateArea, goToStartingPage, saveCurrentFile)
+                            })
                         }
-                        StandardWatchEventKinds.ENTRY_DELETE -> {
-                            updateTree = true
-                            closeArea = closeArea || FileSystems.getDefault().getPath(watcherUI.currentJournal().absolutePath) == e.context() as Path
-                        }
-                        StandardWatchEventKinds.ENTRY_MODIFY ->
-                            updateArea = updateArea || FileSystems.getDefault().getPath(watcherUI.currentJournal().absolutePath) == e.context() as Path
+                    }
+                    StandardWatchEventKinds.ENTRY_MODIFY -> {
+                        updateArea = updateArea || FileSystems.getDefault().getPath(watcherUI.currentJournal().absolutePath) == e.context() as Path
+                        Platform.runLater({
+                            watcherUI.update(updateTree, updateArea, goToStartingPage, saveCurrentFile)
+                        })
                     }
                 }
-                watcherUI.update(updateTree, closeArea, updateArea)
-                key.reset()
             }
-        }).start()
-    }
+            key.reset()
+        }
+    }).start()
 
     fun archive(file: File) {
         if (!archiveDir.exists()) archiveDir.mkdir()

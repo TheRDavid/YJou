@@ -1,4 +1,5 @@
 import javafx.application.Application
+import javafx.application.Platform
 import javafx.geometry.Pos
 import javafx.scene.Parent
 import javafx.scene.Scene
@@ -48,7 +49,10 @@ class MainWindow : Application() {
         fileControls.alignment = Pos.BOTTOM_RIGHT
         addFileButton.setPrefSize(30.0, 30.0)
         addFileButton.setOnMouseClicked {
-            val input = TextInputDialog().showAndWait()
+            val inputDialog = TextInputDialog("There and Back Again")
+            inputDialog.title = "Create a new Journal"
+            inputDialog.headerText = "Set Journal name"
+            val input = inputDialog.showAndWait()
             if (input.isPresent) {
                 val parentItem = contentsTree.selectionModel.selectedItem ?: contentsTree.root
                 val newFile = JournalFile("" +
@@ -87,14 +91,15 @@ class MainWindow : Application() {
         contentArea.engine.load(startPageURL)
 
         mainPane.setDividerPosition(0, 0.3)
-        update(true, false, true)
+        update(true, false, false, false)
         return mainPane
     }
 
     fun loadJournal(journal: JournalFile) {
         dataHandler.currentJournal?.let {
             if (it.exists()) {
-                dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
+                val source = contentArea.engine.document.getElementsByTagName("HTML").item(0)
+                dataHandler.saveCurrentJournal(source)
                 System.gc()                     // unblock file... yup
             }
         }
@@ -126,9 +131,15 @@ class MainWindow : Application() {
         System.exit(0)
     }
 
-    fun update(updateTree: Boolean, closeArea: Boolean, updateEditArea: Boolean) {
+    fun update(updateTree: Boolean, updateEditArea: Boolean, goToStartingPage: Boolean, saveCurrentFile: Boolean) {
         if (updateTree) {
-            //contentsTree.update()
+            contentsTree.update()
+        }
+        if (saveCurrentFile) {
+            dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
+        }
+        if (goToStartingPage) {
+            Platform.runLater({ contentArea.engine.load(startPageURL) })
         }
     }
 
