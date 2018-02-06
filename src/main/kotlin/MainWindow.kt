@@ -1,3 +1,5 @@
+package yjouk
+
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.geometry.Pos
@@ -13,7 +15,7 @@ import kutils.io.deleteRecursively
 import kutils.ui.fx.firstItemByValue
 import java.io.File
 
-class MainWindow : Application() {
+public class MainWindow : Application() {
 
     private val dataHandler = DataHandler(File("mybrainspace"))
     private val contentsTree = JournalsTree(JournalFile(dataHandler.rootDir.absolutePath), this)
@@ -22,7 +24,6 @@ class MainWindow : Application() {
     private val fileControls = HBox(addFileButton, deleteFileButton)
     private val contentArea = WebView()
     private val leftPanel = BorderPane()
-    private val mainPane = SplitPane(leftPanel, contentArea)
     private var selectedJournal = dataHandler.firstJournal()
     private var lastSaveTimestamp: Long = 0
     private val saveInterval: Long = 500
@@ -34,6 +35,7 @@ class MainWindow : Application() {
     private var displayingJournal = false
 
     var running: Boolean = true
+    //private val mainPane = SplitPane(leftPanel, contentArea)
 
     private fun build(): Parent {
         contentsTree.selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
@@ -93,9 +95,9 @@ class MainWindow : Application() {
         contentArea.engine.load(startPageURL)
         displayingJournal = false
 
-        mainPane.setDividerPosition(0, 0.3)
+        //mainPane.setDividerPosition(0, 0.3)
         update(true, false, false, false)
-        return mainPane
+        return HBox(leftPanel,contentArea)
     }
 
     fun loadJournal(journal: JournalFile) {
@@ -159,8 +161,12 @@ class MainWindow : Application() {
         return selectedJournal
     }
 
-}
 
-fun main(args: Array<String>) {
-    Application.launch(MainWindow::class.java, *args)
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            launch(MainWindow::class.java)
+        }
+    }
+
 }
