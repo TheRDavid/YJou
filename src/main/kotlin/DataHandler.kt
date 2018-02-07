@@ -4,6 +4,7 @@ import javafx.application.Platform
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonType
 import javafx.scene.control.ChoiceDialog
+import javafx.scene.control.TextInputDialog
 import org.w3c.dom.Node
 import java.io.File
 import java.io.OutputStreamWriter
@@ -200,7 +201,7 @@ data class DataHandler(val rootDir: File,
         }
     }
 
-    fun delete(file: JournalFile) {
+    fun delete(file: JournalFile): Boolean {
         Alert(Alert.AlertType.CONFIRMATION, "You sure about deleting ${file.name}${if (file.isDirectory) "and all contained files" else ""}?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
             if (it.get() == ButtonType.YES) {
                 archive(file as File)
@@ -208,8 +209,38 @@ data class DataHandler(val rootDir: File,
                 file.deleteRecursively()
                 System.gc()                     // unblock file... yup
                 File("${file.absolutePath}.css").delete()
+                return true
             }
         }
+        return false
+    }
+
+    fun duplicate(file: JournalFile) {
+        val nameDialog = TextInputDialog(file.name)
+        nameDialog.title = "Duplicate File"
+        nameDialog.headerText = "Copy Name:"
+        val input = nameDialog.showAndWait()
+        if (input.isPresent) {
+            file.copyRecursively(File("${file.parentFile.absolutePath}${File.separator}i${input.get()}"))
+        }
+    }
+
+    fun rename(item: JournalFile) {
+        val inputDialog = TextInputDialog("derp")
+        inputDialog.title = "Rename"
+        inputDialog.headerText = "Set new name:"
+        val input = inputDialog.showAndWait()
+        if (input.isPresent)
+            rename(item, input.get())
+    }
+
+    fun rename(item: JournalFile, text: String?): JournalFile {
+        val oldCSSFile = JournalFile("${item.absolutePath}.css")
+        val newFile = JournalFile("${item.parentFile.absolutePath}${File.separatorChar}$text")
+        registerRenaming(item.absoluteFile, newFile)
+        item.renameTo(newFile)
+        oldCSSFile.renameTo(File("${newFile.absolutePath}.css"))
+        return newFile
     }
 
 }

@@ -72,8 +72,8 @@ public class MainWindow : Application() {
         }
         deleteFileButton.setPrefSize(30.0, 30.0)
         deleteFileButton.setOnMouseClicked {
-            dataHandler.delete(contentsTree.selectionModel.selectedItem.value)
-            contentArea.engine.load(dataHandler.startPageURL)
+            if (dataHandler.delete(contentsTree.selectionModel.selectedItem.value))
+                contentArea.engine.load(dataHandler.startPageURL)
             displayingJournal = false
         }
         leftPanel.bottom = fileControls

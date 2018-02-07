@@ -4,6 +4,7 @@ import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.util.Callback
 import kutils.ui.fx.expandAll
+import java.awt.Desktop
 import java.io.File
 
 class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainWindow) : TreeView<JournalFile>() {
@@ -13,25 +14,26 @@ class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainW
             object : MenuItem("Duplicate") {
                 override fun fire() {
                     super.fire()
+                    mainWindow.dataHandler.duplicate(selectionModel.selectedItem.value)
                 }
             },
             object : MenuItem("Rename") {
                 override fun fire() {
                     super.fire()
+                    mainWindow.dataHandler.rename(selectionModel.selectedItem.value)
                 }
             },
             object : MenuItem("Show in File Explorer") {
                 override fun fire() {
                     super.fire()
+                    Desktop.getDesktop().open(selectionModel.selectedItem.value.parentFile)
                 }
             },
             object : MenuItem("Delete") {
                 override fun fire() {
                     super.fire()
-                    println("Checking ${selectionModel.selectedItem.value.absolutePath} against ${mainWindow.dataHandler.currentJournal?.absolutePath}")
-                    if (selectionModel.selectedItem.value.absolutePath == mainWindow.dataHandler.currentJournal?.absolutePath)
+                    if (selectionModel.selectedItem.value.absolutePath == mainWindow.dataHandler.currentJournal?.absolutePath && mainWindow.dataHandler.delete(selectionModel.selectedItem.value))
                         mainWindow.loadStartPage()
-                    mainWindow.dataHandler.delete(selectionModel.selectedItem.value)
                     update()
                 }
             }
@@ -47,6 +49,19 @@ class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainW
         root = TreeItem<JournalFile>(JournalFile(rootDirectory.absolutePath))
         setOnContextMenuRequested {
             fileContextMenu.show(this, it.screenX, it.screenY)
+        }
+        setOnKeyReleased {
+            if (it.isControlDown) {
+                when (it.code) {
+                    KeyCode.E -> Desktop.getDesktop().open(selectionModel.selectedItem.value.parentFile)
+                    KeyCode.C -> mainWindow.dataHandler.duplicate(selectionModel.selectedItem.value)
+                    KeyCode.R -> mainWindow.dataHandler.rename(selectionModel.selectedItem.value)
+                }
+            } else if (it.code == KeyCode.DELETE) {
+                if (selectionModel.selectedItem.value.absolutePath == mainWindow.dataHandler.currentJournal?.absolutePath && mainWindow.dataHandler.delete(selectionModel.selectedItem.value))
+                    mainWindow.loadStartPage()
+                update()
+            }
         }
         selectionModel.selectedItemProperty().addListener { _, _, newValue ->
             if (newValue != null) mainWindow.loadJournal(newValue.value)
@@ -82,13 +97,7 @@ class JournalTreeCell : TreeCell<JournalFile>() {
             if (event.code == KeyCode.ESCAPE)
                 cancelEdit()
             else if (event.code == KeyCode.ENTER) {
-                val oldCSSFile = JournalFile("${item.absolutePath}.css")
-                val newFile = JournalFile("${item.parentFile.absolutePath}${File.separatorChar}${textField.text}")
-                (treeView as JournalsTree).mainWindow.dataHandler.registerRenaming(item.absoluteFile, newFile)
-                item.renameTo(newFile)
-                oldCSSFile.renameTo(File("${newFile.absolutePath}.css"))
-                item = newFile
-                treeItem.value = item
+                item = (treeView as JournalsTree).mainWindow.dataHandler.rename(item, textField.text)
                 cancelEdit()
                 updateItem(item, false)
                 (treeView as JournalsTree).update()
