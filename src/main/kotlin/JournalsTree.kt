@@ -28,6 +28,11 @@ class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainW
             object : MenuItem("Delete") {
                 override fun fire() {
                     super.fire()
+                    println("Checking ${selectionModel.selectedItem.value.absolutePath} against ${mainWindow.dataHandler.currentJournal?.absolutePath}")
+                    if (selectionModel.selectedItem.value.absolutePath == mainWindow.dataHandler.currentJournal?.absolutePath)
+                        mainWindow.loadStartPage()
+                    mainWindow.dataHandler.delete(selectionModel.selectedItem.value)
+                    update()
                 }
             }
     )

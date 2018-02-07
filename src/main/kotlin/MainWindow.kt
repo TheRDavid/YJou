@@ -11,7 +11,6 @@ import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
 import javafx.scene.web.WebView
 import javafx.stage.Stage
-import kutils.io.deleteRecursively
 import kutils.ui.fx.firstItemByValue
 import java.io.File
 
@@ -27,11 +26,6 @@ public class MainWindow : Application() {
     private var selectedJournal = dataHandler.firstJournal()
     private var lastSaveTimestamp: Long = 0
     private val saveInterval: Long = 500
-    private val startPageURL = "file:///${File("." +
-            "${File.separatorChar}src" +
-            "${File.separatorChar}assets" +
-            "${File.separatorChar}startPage" +
-            "${File.separatorChar}index.html").absolutePath}"
     private var displayingJournal = false
 
     private val addMenuItems = arrayOf(
@@ -78,27 +72,13 @@ public class MainWindow : Application() {
         }
         deleteFileButton.setPrefSize(30.0, 30.0)
         deleteFileButton.setOnMouseClicked {
-            val selectedItem = contentsTree.selectionModel.selectedItem
-            selectedItem?.let {
-                Alert(Alert.AlertType.CONFIRMATION, "You sure about deleting ${selectedItem.value.name}${if (selectedItem.value.isDirectory) "and all contained files" else ""}?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
-                    if (it.get() == ButtonType.YES) {
-                        if (selectedItem.value == dataHandler.currentJournal) {
-                            contentArea.engine.load(startPageURL)
-                            displayingJournal = false
-                        }
-                        dataHandler.currentJournal = JournalFile("")
-                        dataHandler.archive(selectedItem.value)
-                        selectedItem.value.deleteRecursively()
-                        System.gc()                     // unblock file... yup
-                        File("${selectedItem.value.absolutePath}.css").delete()
-                        contentsTree.update()
-                    }
-                }
-            }
+            dataHandler.delete(contentsTree.selectionModel.selectedItem.value)
+            contentArea.engine.load(dataHandler.startPageURL)
+            displayingJournal = false
         }
         leftPanel.bottom = fileControls
         leftPanel.center = contentsTree
-        contentArea.engine.load(startPageURL)
+        contentArea.engine.load(dataHandler.startPageURL)
         displayingJournal = false
 
         //mainPane.setDividerPosition(0, 0.3)
@@ -178,8 +158,7 @@ public class MainWindow : Application() {
             dataHandler.saveCurrentJournal(contentArea.engine.document.getElementsByTagName("HTML").item(0))
         }
         if (goToStartingPage) {
-            Platform.runLater({ contentArea.engine.load(startPageURL) })
-            displayingJournal = false
+            loadStartPage()
         }
     }
 
@@ -193,6 +172,13 @@ public class MainWindow : Application() {
         fun main(args: Array<String>) {
             launch(MainWindow::class.java)
         }
+    }
+
+    fun loadStartPage() {
+        Platform.runLater({
+            contentArea.engine.load(dataHandler.startPageURL)
+            displayingJournal = false
+        })
     }
 
 }

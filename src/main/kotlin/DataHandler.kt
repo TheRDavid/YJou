@@ -2,6 +2,7 @@ package yjouk
 
 import javafx.application.Platform
 import javafx.scene.control.Alert
+import javafx.scene.control.ButtonType
 import javafx.scene.control.ChoiceDialog
 import org.w3c.dom.Node
 import java.io.File
@@ -20,7 +21,7 @@ import javax.xml.transform.stream.StreamResult
 
 data class DataHandler(val rootDir: File,
                        private val archiveDir: File = File("${rootDir.absolutePath}${File.separatorChar}$archiveDirName"),
-                       val defaultTemplateJournal: File = File("${rootDir.absolutePath}${File.separatorChar}.templates${File.separatorChar}defaultTemplate"),
+                       private val defaultTemplateJournal: File = File("${rootDir.absolutePath}${File.separatorChar}.templates${File.separatorChar}defaultTemplate"),
                        val defaultTemplateJournalStyle: File = File("${rootDir.absolutePath}${File.separatorChar}.templates${File.separatorChar}${defaultTemplateJournal.name}.css")) {
     companion object {
         const val archiveDirName = ".archive"
@@ -30,7 +31,12 @@ data class DataHandler(val rootDir: File,
     }
 
     var currentJournal: JournalFile? = null
-    private val renameChanges = mutableListOf<Pair<File, File>>()
+    val startPageURL = "file:///${File("." +
+            "${File.separatorChar}src" +
+            "${File.separatorChar}assets" +
+            "${File.separatorChar}startPage" +
+            "${File.separatorChar}index.html").absolutePath}"
+    private val ignoreFileChanges = mutableListOf<Pair<File, File?>>()
 
     private enum class Placeholder {
         JOURNAL_NAME
@@ -108,7 +114,7 @@ data class DataHandler(val rootDir: File,
     }
 
     fun registerRenaming(from: File, to: File) {
-        renameChanges.add(Pair(from, to))
+        ignoreFileChanges.add(Pair(from, to))
     }
 
     fun registerWatcher(watcherUI: MainWindow) = Thread(Runnable {
@@ -154,7 +160,7 @@ data class DataHandler(val rootDir: File,
                                         }
                                     }
                                 }
-                                watcherUI.update(updateTree, updateArea, goToStartingPage, saveCurrentFile)
+                                watcherUI.update(true, updateArea, goToStartingPage, saveCurrentFile)
                             })
                         }
                     }
@@ -171,26 +177,38 @@ data class DataHandler(val rootDir: File,
     }).start()
 
     private fun consumeRenameChanges(event: WatchEvent<*>): Boolean {
-        renameChanges.forEach {
-            println("Checking ${it.first.name} -> ${it.second.name} against ${(event.context() as Path).toFile().absolutePath}")
+        ignoreFileChanges.forEach {
+            println("Checking ${it.first.name} -> ${it.second?.name} against ${(event.context() as Path).toFile().absolutePath}")
             if (!it.first.exists()
                     && currentJournal?.exists() == false
                     && rootDir.resolve((event.context() as Path).toFile()).absolutePath == currentJournal?.absolutePath) {
-                println("Ignoring renaming of ${it.first.name} to ${it.second.name}")
-                renameChanges.remove(it)
+                println("Ignoring renaming of ${it.first.name}")
+                ignoreFileChanges.remove(it)
                 return false
             }
         }
         return true
     }
 
-    fun archive(file: File) {
+    private fun archive(file: File) {
         if (file.name != archiveDirName) {
             if (!archiveDir.exists()) archiveDir.mkdir()
             file.copyRecursively(File(archiveDir.absolutePath +
                     "${File.separatorChar}" +
                     SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Date(System.currentTimeMillis())) +
                     "_${file.name}"))
+        }
+    }
+
+    fun delete(file: JournalFile) {
+        Alert(Alert.AlertType.CONFIRMATION, "You sure about deleting ${file.name}${if (file.isDirectory) "and all contained files" else ""}?", ButtonType.YES, ButtonType.CANCEL).showAndWait()?.let {
+            if (it.get() == ButtonType.YES) {
+                archive(file as File)
+                ignoreFileChanges.add(Pair(file, null))
+                file.deleteRecursively()
+                System.gc()                     // unblock file... yup
+                File("${file.absolutePath}.css").delete()
+            }
         }
     }
 
