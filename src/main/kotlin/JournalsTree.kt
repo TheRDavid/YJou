@@ -1,15 +1,37 @@
 package yjouk
 
-import javafx.scene.control.TextField
-import javafx.scene.control.TreeCell
-import javafx.scene.control.TreeItem
-import javafx.scene.control.TreeView
+import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.util.Callback
 import kutils.ui.fx.expandAll
 import java.io.File
 
 class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainWindow) : TreeView<JournalFile>() {
+
+
+    private val addMenuItems = arrayOf(
+            object : MenuItem("Duplicate") {
+                override fun fire() {
+                    super.fire()
+                }
+            },
+            object : MenuItem("Rename") {
+                override fun fire() {
+                    super.fire()
+                }
+            },
+            object : MenuItem("Show in File Explorer") {
+                override fun fire() {
+                    super.fire()
+                }
+            },
+            object : MenuItem("Delete") {
+                override fun fire() {
+                    super.fire()
+                }
+            }
+    )
+    private val fileContextMenu = ContextMenu(*addMenuItems)
 
     init {
         isEditable = true
@@ -18,6 +40,9 @@ class JournalsTree(private val rootDirectory: JournalFile, val mainWindow: MainW
         }
 
         root = TreeItem<JournalFile>(JournalFile(rootDirectory.absolutePath))
+        setOnContextMenuRequested {
+            fileContextMenu.show(this, it.screenX, it.screenY)
+        }
         selectionModel.selectedItemProperty().addListener { _, _, newValue ->
             if (newValue != null) mainWindow.loadJournal(newValue.value)
         }

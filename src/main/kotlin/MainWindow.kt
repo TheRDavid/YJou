@@ -34,6 +34,27 @@ public class MainWindow : Application() {
             "${File.separatorChar}index.html").absolutePath}"
     private var displayingJournal = false
 
+    private val addMenuItems = arrayOf(
+            object : MenuItem("Journal") {
+                override fun fire() {
+                    super.fire()
+                    newJournal()
+                }
+            },
+            object : MenuItem("Folder") {
+                override fun fire() {
+                    super.fire()
+                    val inputDialog = TextInputDialog("A collection")
+                    inputDialog.title = "Create a new Folder"
+                    inputDialog.headerText = "Set Folder name"
+                    val input = inputDialog.showAndWait()
+                    if (input.isPresent)
+                        File("${dataHandler.rootDir.absolutePath}${File.separator}${input.get()}").mkdir()
+                }
+            }
+    )
+    private val addContextMenu = ContextMenu(*addMenuItems)
+
     var running: Boolean = true
     //private val mainPane = SplitPane(leftPanel, contentArea)
 
@@ -51,24 +72,9 @@ public class MainWindow : Application() {
         }
         fileControls.alignment = Pos.BOTTOM_RIGHT
         addFileButton.setPrefSize(30.0, 30.0)
-        addFileButton.setOnMouseClicked {
-            val inputDialog = TextInputDialog("There and Back Again")
-            inputDialog.title = "Create a new Journal"
-            inputDialog.headerText = "Set Journal name"
-            val input = inputDialog.showAndWait()
-            if (input.isPresent) {
-                val parentItem = contentsTree.selectionModel.selectedItem ?: contentsTree.root
-                val newFile = JournalFile("" +
-                        (if (parentItem.value.isDirectory) parentItem else parentItem.parent).value.absolutePath +
-                        "${File.separatorChar}" +
-                        input.get())
-                if (newFile.exists()) Alert(Alert.AlertType.ERROR, "Journal already exists m8", ButtonType.OK)
-                else {
-                    dataHandler.addDefaultJournal(newFile.absolutePath)
-                    contentsTree.update()
-                    contentsTree.selectionModel.select(contentsTree.firstItemByValue(newFile))
-                }
-            }
+        addFileButton.contextMenu = addContextMenu
+        addFileButton.setOnAction {
+            newJournal()
         }
         deleteFileButton.setPrefSize(30.0, 30.0)
         deleteFileButton.setOnMouseClicked {
@@ -97,7 +103,7 @@ public class MainWindow : Application() {
 
         //mainPane.setDividerPosition(0, 0.3)
         update(true, false, false, false)
-        return HBox(leftPanel,contentArea)
+        return HBox(leftPanel, contentArea)
     }
 
     fun loadJournal(journal: JournalFile) {
@@ -142,6 +148,26 @@ public class MainWindow : Application() {
     override fun stop() {
         super.stop()
         System.exit(0)
+    }
+
+    private fun newJournal() {
+        val inputDialog = TextInputDialog("There and Back Again")
+        inputDialog.title = "Create a new Journal"
+        inputDialog.headerText = "Set Journal name"
+        val input = inputDialog.showAndWait()
+        if (input.isPresent) {
+            val parentItem = contentsTree.selectionModel.selectedItem ?: contentsTree.root
+            val newFile = JournalFile("" +
+                    (if (parentItem.value.isDirectory) parentItem else parentItem.parent).value.absolutePath +
+                    "${File.separatorChar}" +
+                    input.get())
+            if (newFile.exists()) Alert(Alert.AlertType.ERROR, "Journal already exists m8", ButtonType.OK)
+            else {
+                dataHandler.addDefaultJournal(newFile.absolutePath)
+                contentsTree.update()
+                contentsTree.selectionModel.select(contentsTree.firstItemByValue(newFile))
+            }
+        }
     }
 
     fun update(updateTree: Boolean, updateEditArea: Boolean, goToStartingPage: Boolean, saveCurrentFile: Boolean) {
