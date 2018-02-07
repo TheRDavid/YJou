@@ -17,7 +17,7 @@ import java.io.File
 
 public class MainWindow : Application() {
 
-    private val dataHandler = DataHandler(File("mybrainspace"))
+    val dataHandler = DataHandler(File("mybrainspace"))
     private val contentsTree = JournalsTree(JournalFile(dataHandler.rootDir.absolutePath), this)
     private val addFileButton = Button("+")
     private val deleteFileButton = Button("-")

@@ -54,6 +54,7 @@ class JournalTreeCell : TreeCell<JournalFile>() {
             else if (event.code == KeyCode.ENTER) {
                 val oldCSSFile = JournalFile("${item.absolutePath}.css")
                 val newFile = JournalFile("${item.parentFile.absolutePath}${File.separatorChar}${textField.text}")
+                (treeView as JournalsTree).mainWindow.dataHandler.registerRenaming(item.absoluteFile, newFile)
                 item.renameTo(newFile)
                 oldCSSFile.renameTo(File("${newFile.absolutePath}.css"))
                 item = newFile

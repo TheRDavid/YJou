@@ -11,6 +11,7 @@ import java.net.URL
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
+import java.nio.file.WatchEvent
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.xml.transform.TransformerFactory
@@ -29,6 +30,7 @@ data class DataHandler(val rootDir: File,
     }
 
     var currentJournal: JournalFile? = null
+    private val renameChanges = mutableListOf<Pair<File, File>>()
 
     private enum class Placeholder {
         JOURNAL_NAME
@@ -105,6 +107,10 @@ data class DataHandler(val rootDir: File,
         return rootDir.listFiles()[0]
     }
 
+    fun registerRenaming(from: File, to: File) {
+        renameChanges.add(Pair(from, to))
+    }
+
     fun registerWatcher(watcherUI: MainWindow) = Thread(Runnable {
 
         val path = FileSystems.getDefault().getPath(rootDir.absolutePath)
@@ -130,7 +136,7 @@ data class DataHandler(val rootDir: File,
                     }
                     StandardWatchEventKinds.ENTRY_DELETE -> {
                         updateTree = true
-                        if (currentJournal?.absolutePath == rootDir.resolve((e.context() as Path).toFile()).absolutePath) {
+                        if (consumeRenameChanges(e) && currentJournal?.absolutePath == rootDir.resolve((e.context() as Path).toFile()).absolutePath) {
                             Platform.runLater({
                                 val choices = listOf("Recreate", "Close", "Close and delete stylesheet")
                                 val choiceDialog = ChoiceDialog<String>(choices[0], choices)
@@ -164,12 +170,28 @@ data class DataHandler(val rootDir: File,
         }
     }).start()
 
+    private fun consumeRenameChanges(event: WatchEvent<*>): Boolean {
+        renameChanges.forEach {
+            println("Checking ${it.first.name} -> ${it.second.name} against ${(event.context() as Path).toFile().absolutePath}")
+            if (!it.first.exists()
+                    && currentJournal?.exists() == false
+                    && rootDir.resolve((event.context() as Path).toFile()).absolutePath == currentJournal?.absolutePath) {
+                println("Ignoring renaming of ${it.first.name} to ${it.second.name}")
+                renameChanges.remove(it)
+                return false
+            }
+        }
+        return true
+    }
+
     fun archive(file: File) {
-        if (!archiveDir.exists()) archiveDir.mkdir()
-        file.copyRecursively(File(archiveDir.absolutePath +
-                "${File.separatorChar}" +
-                SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Date(System.currentTimeMillis())) +
-                "_${file.name}"))
+        if (file.name != archiveDirName) {
+            if (!archiveDir.exists()) archiveDir.mkdir()
+            file.copyRecursively(File(archiveDir.absolutePath +
+                    "${File.separatorChar}" +
+                    SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Date(System.currentTimeMillis())) +
+                    "_${file.name}"))
+        }
     }
 
 }
